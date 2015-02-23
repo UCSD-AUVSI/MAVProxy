@@ -46,6 +46,7 @@ class AntennaModule(mp_module.MPModule):
         else:
             return
         self.console.set_status('Antenna', 'Antenna %.0f' % bearing, row=0)
+        self.mdlink.set_status('Antenna', 'Antenna %.0f' % bearing, row=0)
         if abs(bearing - self.last_bearing) > 5 and (time.time() - self.last_announce) > 15:
             self.last_bearing = bearing
             self.last_announce = time.time()

@@ -25,6 +25,7 @@ class RallyModule(mp_module.MPModule):
 
         if mp_util.has_wxpython:
             self.menu_added_console = False
+            self.menu_added_mdlink = False
             self.menu_added_map = False
             self.menu = MPMenuSubMenu('Rally',
                                   items=[MPMenuItem('Clear', 'Clear', '# rally clear'),
@@ -47,6 +48,9 @@ class RallyModule(mp_module.MPModule):
         if self.module('console') is not None and not self.menu_added_console:
             self.menu_added_console = True
             self.module('console').add_menu(self.menu)
+        if self.module('mdlink') is not None and not self.menu_added_mdlink:
+            self.menu_added_mdlink = True
+            self.module('mdlink').add_menu(self.menu)
         if self.module('map') is not None and not self.menu_added_map:
             self.menu_added_map = True
             self.module('map').add_menu(self.menu)
@@ -293,6 +297,7 @@ class RallyModule(mp_module.MPModule):
             continue
         if p is None:
             self.console.error("Failed to fetch rally point %u" % i)
+            self.mdlink.error("Failed to fetch rally point %u" % i)
             return None
         return p
 
@@ -311,6 +316,7 @@ class RallyModule(mp_module.MPModule):
         for i in range(self.rallyloader.rally_count()):
             p = self.rallyloader.rally_point(i)
             self.console.writeln("lat=%f lng=%f alt=%f break_alt=%f land_dir=%f autoland=%f" % (p.lat * 1e-7, p.lng * 1e-7, p.alt, p.break_alt, p.land_dir, int(p.flags & 2!=0) ))
+            self.mdlink.writeln("lat=%f lng=%f alt=%f break_alt=%f land_dir=%f autoland=%f" % (p.lat * 1e-7, p.lng * 1e-7, p.alt, p.break_alt, p.land_dir, int(p.flags & 2!=0) ))
     
         if self.logdir != None:
             ral_file_path = os.path.join(self.logdir, 'ral.txt')

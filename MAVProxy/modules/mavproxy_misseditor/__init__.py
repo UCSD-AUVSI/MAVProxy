@@ -188,6 +188,7 @@ class MissionEditorModule(mp_module.MPModule):
                 #I haven't asked for WPs, or these messages are duplicates
                 #of msgs I've already received.
                 self.console.error("No waypoint load started (from Editor).")
+                self.mdlink.error("No waypoint load started (from Editor).")
             #I only clear the mission in the Editor if this was a read event
             elif (self.num_wps_expected == -1):
                 self.gui_event_queue.put(MissionEditorEvent(
@@ -202,6 +203,7 @@ class MissionEditorModule(mp_module.MPModule):
             elif (self.num_wps_expected > 1): 
                 if (m.count != self.num_wps_expected):
                     self.console.error("Unepxected waypoint count from APM after write (Editor)")
+                    self.mdlink.error("Unepxected waypoint count from APM after write (Editor)")
                 #since this is a write operation from the Editor there
                 #should be no need to update number of table rows
 

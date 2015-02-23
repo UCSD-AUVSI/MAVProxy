@@ -33,6 +33,7 @@ class FenceModule(mp_module.MPModule):
 
         if mp_util.has_wxpython:
             self.menu_added_console = False
+            self.menu_added_mdlink = False
             self.menu_added_map = False
             self.menu = MPMenuSubMenu('Fence',
                                   items=[MPMenuItem('Clear', 'Clear', '# fence clear'),
@@ -52,6 +53,9 @@ class FenceModule(mp_module.MPModule):
         if self.module('console') is not None and not self.menu_added_console:
             self.menu_added_console = True
             self.module('console').add_menu(self.menu)
+        if self.module('mdlink') is not None and not self.menu_added_mdlink:
+            self.menu_added_mdlink = True
+            self.module('mdlink').add_menu(self.menu)
         if self.module('map') is not None and not self.menu_added_map:
             self.menu_added_map = True
             self.module('map').add_menu(self.menu)
@@ -92,6 +96,13 @@ class FenceModule(mp_module.MPModule):
                 self.console.set_status('Fence', 'FEN', row=0, fg='green')
             elif self.enabled == True and self.healthy == False:
                 self.console.set_status('Fence', 'FEN', row=0, fg='red')
+            #mdlink output for fence:
+            if self.enabled == False:
+                self.mdlink.set_status('Fence', 'FEN', row=0, fg='grey')
+            elif self.enabled == True and self.healthy == True:
+                self.mdlink.set_status('Fence', 'FEN', row=0, fg='green')
+            elif self.enabled == True and self.healthy == False:
+                self.mdlink.set_status('Fence', 'FEN', row=0, fg='red')
 
     def set_fence_enabled(self, do_enable):
         '''Enable or disable fence'''
@@ -244,6 +255,7 @@ class FenceModule(mp_module.MPModule):
             continue
         if p is None:
             self.console.error("Failed to fetch point %u" % i)
+            self.mdlink.error("Failed to fetch point %u" % i)
             return None
         return p
 
@@ -289,6 +301,7 @@ class FenceModule(mp_module.MPModule):
             for i in range(self.fenceloader.count()):
                 p = self.fenceloader.point(i)
                 self.console.writeln("lat=%f lng=%f" % (p.lat, p.lng))
+                self.mdlink.writeln("lat=%f lng=%f" % (p.lat, p.lng))
         if self.status.logdir != None:
             fencetxt = os.path.join(self.status.logdir, 'fence.txt')
             self.fenceloader.save(fencetxt)

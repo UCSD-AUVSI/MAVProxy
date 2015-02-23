@@ -90,6 +90,7 @@ class MPStatus(object):
 def say_text(text, priority='important'):
     '''text output - default function for say()'''
     mpstate.console.writeln(text)
+    mpstate.mdlink.writeln(text)
 
 def say(text, priority='important'):
     '''text and/or speech output'''
@@ -114,6 +115,7 @@ class MPState(object):
     '''holds state of mavproxy'''
     def __init__(self):
         self.console = textconsole.SimpleConsole()
+        self.mdlink = textconsole.SimpleConsole()
         self.map = None
         self.map_functions = {}
         self.vehicle_type = None
@@ -497,6 +499,7 @@ def process_master(m):
             if msg.get_type() == "BAD_DATA":
                 if opts.show_errors:
                     mpstate.console.writeln("MAV error: %s" % msg)
+                    mpstate.mdlink.writeln("MAV error: %s" % msg)
                 mpstate.status.mav_error += 1
 
 
@@ -513,6 +516,7 @@ def process_mavlink(slave):
         msgs = slave.mav.parse_buffer(buf)
     except mavutil.mavlink.MAVError as e:
         mpstate.console.error("Bad MAVLink slave message from %s: %s" % (slave.address, e.message))
+        mpstate.mdlink.error("Bad MAVLink slave message from %s: %s" % (slave.address, e.message))
         return
     if msgs is None:
         return
@@ -760,6 +764,7 @@ def run_script(scriptfile):
     except Exception:
         return
     mpstate.console.writeln("Running script %s" % scriptfile)
+    mpstate.mdlink.writeln("Running script %s" % scriptfile)
     for line in f:
         line = line.strip()
         if line == "" or line.startswith('#'):
@@ -768,6 +773,7 @@ def run_script(scriptfile):
             line = line[1:]
         else:
             mpstate.console.writeln("-> %s" % line)
+            mpstate.mdlink.writeln("-> %s" % line)
         process_stdin(line)
     f.close()
 
@@ -809,6 +815,7 @@ if __name__ == '__main__':
     parser.add_option("--aircraft", dest="aircraft", help="aircraft name", default=None)
     parser.add_option("--cmd", dest="cmd", help="initial commands", default=None, action='append')
     parser.add_option("--console", action='store_true', help="use GUI console")
+    parser.add_option("--mdlink", action='store_true', help="use GUI mdlink")
     parser.add_option("--map", action='store_true', help="load map module")
     parser.add_option(
         '--load-module',
@@ -941,6 +948,9 @@ if __name__ == '__main__':
     if opts.console:
         process_stdin('module load console')
 
+    if opts.mdlink:
+        process_stdin('module load mdlink')
+
     if opts.map:
         process_stdin('module load map')
 
@@ -978,7 +988,7 @@ if __name__ == '__main__':
 
                 #Just lost the map and console, get them back:
                 for (m,pm) in mpstate.modules:
-                    if m.name in ["map", "console"]:
+                    if m.name in ["map", "console", "mdlink"]:
                         if hasattr(m, 'unload'):
                             try:
                                 m.unload()

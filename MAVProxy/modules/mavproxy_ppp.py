@@ -85,6 +85,7 @@ class PPPModule(mp_module.MPModule):
             self.stop_ppp_link()
         elif args[0] == "status":
             self.console.writeln("%u packets %u bytes" % (self.packet_count, self.byte_count))
+            self.mdlink.writeln("%u packets %u bytes" % (self.packet_count, self.byte_count))
 
     def unload(self):
         '''unload module'''

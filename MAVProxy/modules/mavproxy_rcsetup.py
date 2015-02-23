@@ -29,8 +29,10 @@ class RCSetupModule(mp_module.MPModule):
 
             self.param_set('RC%u_MIN' % i, self.rc_cal[i][0], 5)
             self.console.writeln("Set: RC%u_MIN=%u" % (i, self.rc_cal[i][0]))
+            self.mdlink.writeln("Set: RC%u_MIN=%u" % (i, self.rc_cal[i][0]))
             self.param_set('RC%u_MAX' % i, self.rc_cal[i][1], 5)
             self.console.writeln("Set: RC%u_MAX=%u" % (i, self.rc_cal[i][1]))
+            self.mdlink.writeln("Set: RC%u_MAX=%u" % (i, self.rc_cal[i][1]))
 
     def get_cal_min(self, channel):
         return self.rc_cal[channel][0]
@@ -98,9 +100,11 @@ class RCSetupModule(mp_module.MPModule):
                 if self.get_cal_min(i) > v:
                     self.set_cal_min(i,v)
                     self.console.writeln("Calibrating: RC%u_MIN=%u" % (i, v))
+                    self.mdlink.writeln("Calibrating: RC%u_MIN=%u" % (i, v))
                 if self.get_cal_max(i) < v:
                     self.set_cal_max(i,v)
                     self.console.writeln("Calibrating: RC%u_MAX=%u" % (i, v))
+                    self.mdlink.writeln("Calibrating: RC%u_MAX=%u" % (i, v))
 
     def print_cal_usage(self):
         print("Usage rccal <start|done>")

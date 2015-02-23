@@ -36,6 +36,7 @@ class LinkModule(mp_module.MPModule):
 
         if mp_util.has_wxpython:
             self.menu_added_console = False
+            self.menu_added_mdlink = False
             self.menu_add = MPMenuSubMenu('Add', items=[])
             self.menu_rm = MPMenuSubMenu('Remove', items=[])
             self.menu = MPMenuSubMenu('Link',
@@ -54,6 +55,12 @@ class LinkModule(mp_module.MPModule):
             self.menu_add.items = [ MPMenuItem(p, p, '# link add %s' % p) for p in self.complete_serial_ports('') ]
             self.menu_rm.items = [ MPMenuItem(p, p, '# link remove %s' % p) for p in self.complete_links('') ]
             self.module('console').add_menu(self.menu)
+        if not self.menu_added_mdlink and self.module('mdlink') is not None:
+            self.menu_added_mdlink = True
+            # we don't dynamically update these yet due to a wx bug
+            self.menu_add.items = [ MPMenuItem(p, p, '# link add %s' % p) for p in self.complete_serial_ports('') ]
+            self.menu_rm.items = [ MPMenuItem(p, p, '# link remove %s' % p) for p in self.complete_links('') ]
+            self.module('mdlink').add_menu(self.menu)
 
     def complete_serial_ports(self, text):
         '''return list of serial ports'''
@@ -234,6 +241,10 @@ class LinkModule(mp_module.MPModule):
             master.post_message(m)
         self.status.counters['MasterIn'][master.linknum] += 1
 
+        if getattr(m, 'time_boot_ms', None) is not None:
+            # update link_delayed attribute
+            self.handle_msec_timestamp(m, master)
+
         mtype = m.get_type()
 
         # and log them
@@ -324,6 +335,7 @@ class LinkModule(mp_module.MPModule):
         elif mtype == 'STATUSTEXT':
             if m.text != self.status.last_apm_msg or time.time() > self.status.last_apm_msg_time+2:
                 self.mpstate.console.writeln("APM: %s" % m.text, bg='red')
+                self.mpstate.mdlink.writeln("APM: %s" % m.text, bg='red')
                 self.status.last_apm_msg = m.text
                 self.status.last_apm_msg_time = time.time()
 
@@ -375,8 +387,10 @@ class LinkModule(mp_module.MPModule):
         elif mtype == "BAD_DATA":
             if self.mpstate.settings.shownoise and mavutil.all_printable(m.data):
                 self.mpstate.console.write(str(m.data), bg='red')
+                self.mpstate.mdlink.write(str(m.data), bg='red')
         elif mtype in [ "COMMAND_ACK", "MISSION_ACK" ]:
             self.mpstate.console.writeln("Got MAVLink msg: %s" % m)
+            self.mpstate.mdlink.writeln("Got MAVLink msg: %s" % m)
 
             if mtype == "COMMAND_ACK" and m.command == mavutil.mavlink.MAV_CMD_PREFLIGHT_CALIBRATION:
                 if m.result == mavutil.mavlink.MAV_RESULT_ACCEPTED:
@@ -388,6 +402,7 @@ class LinkModule(mp_module.MPModule):
         if self.status.watch is not None:
             if fnmatch.fnmatch(m.get_type().upper(), self.status.watch.upper()):
                 self.mpstate.console.writeln(m)
+                self.mpstate.mdlink.writeln(m)
 
         # don't pass along bad data
         if mtype != 'BAD_DATA':

@@ -33,6 +33,7 @@ class WPModule(mp_module.MPModule):
 
         if mp_util.has_wxpython:
             self.menu_added_console = False
+            self.menu_added_mdlink = False
             self.menu_added_map = False
             self.menu = MPMenuSubMenu('Mission',
                                   items=[MPMenuItem('Clear', 'Clear', '# wp clear'),
@@ -58,10 +59,14 @@ class WPModule(mp_module.MPModule):
         if mtype in ['WAYPOINT_COUNT','MISSION_COUNT']:
             if self.wp_op is None:
                 self.console.error("No waypoint load started")
+                self.mdlink.error("No waypoint load started")
             else:
                 self.wploader.clear()
                 self.wploader.expected_count = m.count
                 self.console.writeln("Requesting %u waypoints t=%s now=%s" % (m.count,
+                                                                                 time.asctime(time.localtime(m._timestamp)),
+                                                                                 time.asctime()))
+                self.mdlink.writeln("Requesting %u waypoints t=%s now=%s" % (m.count,
                                                                                  time.asctime(time.localtime(m._timestamp)),
                                                                                  time.asctime()))
                 self.master.waypoint_request_send(0)
@@ -69,6 +74,7 @@ class WPModule(mp_module.MPModule):
         elif mtype in ['WAYPOINT', 'MISSION_ITEM'] and self.wp_op != None:
             if m.seq > self.wploader.count():
                 self.console.writeln("Unexpected waypoint number %u - expected %u" % (m.seq, self.wploader.count()))
+                self.mdlink.writeln("Unexpected waypoint number %u - expected %u" % (m.seq, self.wploader.count()))
             elif m.seq < self.wploader.count():
                 # a duplicate
                 pass
@@ -113,6 +119,9 @@ class WPModule(mp_module.MPModule):
         if self.module('console') is not None and not self.menu_added_console:
             self.menu_added_console = True
             self.module('console').add_menu(self.menu)
+        if self.module('mdlink') is not None and not self.menu_added_mdlink:
+            self.menu_added_mdlink = True
+            self.module('mdlink').add_menu(self.menu)
         if self.module('map') is not None and not self.menu_added_map:
             self.menu_added_map = True
             self.module('map').add_menu(self.menu)
@@ -123,9 +132,11 @@ class WPModule(mp_module.MPModule):
             time.time() > self.loading_waypoint_lasttime + 10.0):
             self.loading_waypoints = False
             self.console.error("not loading waypoints")
+            self.mdlink.error("not loading waypoints")
             return
         if m.seq >= self.wploader.count():
             self.console.error("Request for bad waypoint %u (max %u)" % (m.seq, self.wploader.count()))
+            self.mdlink.error("Request for bad waypoint %u (max %u)" % (m.seq, self.wploader.count()))
             return
         wp = self.wploader.wp(m.seq)
         wp.target_system = self.target_system
@@ -133,9 +144,11 @@ class WPModule(mp_module.MPModule):
         self.master.mav.send(self.wploader.wp(m.seq))
         self.loading_waypoint_lasttime = time.time()
         self.console.writeln("Sent waypoint %u : %s" % (m.seq, self.wploader.wp(m.seq)))
+        self.mdlink.writeln("Sent waypoint %u : %s" % (m.seq, self.wploader.wp(m.seq)))
         if m.seq == self.wploader.count() - 1:
             self.loading_waypoints = False
             self.console.writeln("Sent all %u waypoints" % self.wploader.count())
+            self.mdlink.writeln("Sent all %u waypoints" % self.wploader.count())
 
     def send_all_waypoints(self):
         '''send all waypoints to vehicle'''

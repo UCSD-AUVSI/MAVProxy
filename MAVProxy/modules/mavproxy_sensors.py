@@ -69,6 +69,16 @@ class SensorsModule(mp_module.MPModule):
             self.status.msgs['VFR_HUD'].airspeed,
             self.status.msgs['VFR_HUD'].groundspeed,
             self.status.msgs['VFR_HUD'].throttle))
+        self.mdlink.writeln("heading: %u/%u   alt: %u/%u  r/p: %u/%u speed: %u/%u  thr: %u" % (
+            self.status.msgs['VFR_HUD'].heading,
+            gps_heading,
+            self.status.altitude,
+            self.gps_alt,
+            math.degrees(self.status.msgs['ATTITUDE'].roll),
+            math.degrees(self.status.msgs['ATTITUDE'].pitch),
+            self.status.msgs['VFR_HUD'].airspeed,
+            self.status.msgs['VFR_HUD'].groundspeed,
+            self.status.msgs['VFR_HUD'].throttle))
 
 
     def cmd_speed(self, args):
@@ -76,8 +86,10 @@ class SensorsModule(mp_module.MPModule):
         self.settings.set('speedreporting', not self.settings.speedreporting)
         if self.settings.speedreporting:
             self.console.writeln("Speed reporting enabled", bg='yellow')
+            self.mdlink.writeln("Speed reporting enabled", bg='yellow')
         else:
             self.console.writeln("Speed reporting disabled", bg='yellow')
+            self.mdlink.writeln("Speed reporting disabled", bg='yellow')
 
     def report(self, name, ok, msg=None, deltat=20):
         '''report a sensor error'''

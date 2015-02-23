@@ -68,6 +68,7 @@ class SpeechModule(mp_module.MPModule):
         '''speak some text'''
         ''' http://cvs.freebsoft.org/doc/speechd/ssip.html see 4.3.1 for priorities'''
         self.console.writeln(text)
+        self.mdlink.writeln(text)
         if self.settings.speech and self.say_backend is not None:
             self.say_backend(text, priority=priority)
 

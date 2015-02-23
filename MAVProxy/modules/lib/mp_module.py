@@ -49,6 +49,10 @@ class MPModule(object):
         return self.mpstate.console
 
     @property
+    def mdlink(self):
+        return self.mpstate.mdlink
+
+    @property
     def status(self):
         return self.mpstate.status
 
