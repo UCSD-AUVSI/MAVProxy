@@ -1,6 +1,4 @@
-setlocal
-SET PATH=%PATH%;..\mavlink;..\mavlink\pymavlink\examples
-
-mavproxy.py --master=COM10 --baudrate=115200
-
+cd ..\
+python setup.py build install --user
+python .\MAVProxy\mavproxy.py --console
 pause
